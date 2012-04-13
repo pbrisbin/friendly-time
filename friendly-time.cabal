@@ -1,0 +1,25 @@
+name:                friendly-time
+version:             0.2
+description:         A yesod goody, friendly time
+synopsis:            Print time information in friendly ways
+homepage:            http://github.com/pbrisbin/yesod-goodies/friendly-time
+license:             BSD3
+license-file:        LICENSE
+author:              Patrick Brisbin
+maintainer:          me@pbrisbin.com
+category:            Web, Yesod
+build-type:          Simple
+cabal-version:       >=1.6
+
+library
+  exposed-modules: Data.Time.Format.Human
+
+  build-depends: base >= 4 && < 5
+               , time
+               , old-locale
+
+  ghc-options: -Wall
+  
+source-repository head
+  type:         git
+  location:     git://github.com/pbrisbin/friendly-time.git
