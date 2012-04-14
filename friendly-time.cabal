@@ -1,8 +1,8 @@
 name:                friendly-time
-version:             0.2
-description:         A yesod goody, friendly time
+version:             0.2.1
+description:         Print time information in friendly ways
 synopsis:            Print time information in friendly ways
-homepage:            http://github.com/pbrisbin/yesod-goodies/friendly-time
+homepage:            http://github.com/pbrisbin/friendly-time
 license:             BSD3
 license-file:        LICENSE
 author:              Patrick Brisbin
