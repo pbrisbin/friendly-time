@@ -13,9 +13,10 @@
 --
 -------------------------------------------------------------------------------
 module Data.Time.Format.Human
-    ( humanReadableTime
-    , humanReadableTime'
+    ( HumanTimeLocale(..)
     , defaultHumanTimeLocale
+    , humanReadableTime
+    , humanReadableTime'
     ) where
 
 import Data.Time
