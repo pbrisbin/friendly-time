@@ -9,8 +9,7 @@
 -- Stability   :  unstable
 -- Portability :  unportable
 --
--- Prints a @'UTCTime'@ as "a few seconds ago" or "3 days ago" and
--- similar.
+-- Prints a @'UTCTime'@ as "a few seconds ago" or "3 days ago" and similar.
 --
 -------------------------------------------------------------------------------
 module Data.Time.Format.Human
@@ -27,37 +26,36 @@ import Data.Time
 import Data.Char (isSpace)
 import System.Locale
 
-data HumanTimeLocale = HumanTimeLocale {
-		justNow       :: String
-  , secondsAgo    :: String -> String
-  , oneMinuteAgo  :: String
-  , minutesAgo    :: String -> String
-  , oneHourAgo    :: String
-  , aboutHoursAgo :: String -> String
-  , at            :: String -> String
-  , daysAgo       :: String -> String
-  , weekAgo       :: String -> String
-  , weeksAgo      :: String -> String
-  , onYear        :: String -> String
-	,	locale        :: TimeLocale
-	}
+data HumanTimeLocale = HumanTimeLocale
+    { justNow       :: String
+    , secondsAgo    :: String -> String
+    , oneMinuteAgo  :: String
+    , minutesAgo    :: String -> String
+    , oneHourAgo    :: String
+    , aboutHoursAgo :: String -> String
+    , at            :: String -> String
+    , daysAgo       :: String -> String
+    , weekAgo       :: String -> String
+    , weeksAgo      :: String -> String
+    , onYear        :: String -> String
+    , locale        :: TimeLocale
+    }
 
 defaultHumanTimeLocale :: HumanTimeLocale
-defaultHumanTimeLocale = HumanTimeLocale {
-		justNow       = "just now"
-  , secondsAgo    = (++ " seconds ago")
-  , oneMinuteAgo  = "one minute ago"
-  , minutesAgo    = (++ " minutes ago")
-  , oneHourAgo    = "one hour ago"
-  , aboutHoursAgo = \x -> "about " ++ x ++ " hours ago"
-  , at            = ("at " ++)
-  , daysAgo       = (++ " days ago")
-  , weekAgo       = (++ " week ago")
-  , weeksAgo      = (++ " weeks ago")
-  , onYear        = ("on " ++)
-	, locale        = defaultTimeLocale
-  }
-
+defaultHumanTimeLocale = HumanTimeLocale
+    { justNow       = "just now"
+    , secondsAgo    = (++ " seconds ago")
+    , oneMinuteAgo  = "one minute ago"
+    , minutesAgo    = (++ " minutes ago")
+    , oneHourAgo    = "one hour ago"
+    , aboutHoursAgo = \x -> "about " ++ x ++ " hours ago"
+    , at            = ("at " ++)
+    , daysAgo       = (++ " days ago")
+    , weekAgo       = (++ " week ago")
+    , weeksAgo      = (++ " weeks ago")
+    , onYear        = ("on " ++)
+    , locale        = defaultTimeLocale
+    }
 
 -- | Based on @humanReadableTimeDiff@ found in
 --   <https://github.com/snoyberg/haskellers/blob/master/Haskellers.hs>,
@@ -108,7 +106,7 @@ humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
         thisYear      = trim $! format "%b %e" old
         previousYears = trim $! format "%b %e, %Y" old
 
-        helper d 
+        helper d
             | d         < 1  = justNow
             | d         < 60 = secondsAgo $ i2s d
             | minutes d < 2  = oneMinuteAgo
