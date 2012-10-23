@@ -1,5 +1,5 @@
 name:                friendly-time
-version:             0.2.1
+version:             0.2.2
 description:         Print time information in friendly ways
 synopsis:            Print time information in friendly ways
 homepage:            http://github.com/pbrisbin/friendly-time
@@ -19,7 +19,7 @@ library
                , old-locale
 
   ghc-options: -Wall
-  
+
 source-repository head
   type:         git
   location:     git://github.com/pbrisbin/friendly-time.git
