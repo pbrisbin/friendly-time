@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Time.Format.Human
@@ -13,10 +14,12 @@
 --
 -------------------------------------------------------------------------------
 module Data.Time.Format.Human
-    ( HumanTimeLocale(..)
-    , defaultHumanTimeLocale
-    , humanReadableTime
+    ( humanReadableTime
     , humanReadableTime'
+    , humanReadableTimeI18N
+    , humanReadableTimeI18N'
+    , HumanTimeLocale(..)
+    , defaultHumanTimeLocale
     ) where
 
 import Data.Time
@@ -24,47 +27,60 @@ import Data.Time
 import Data.Char (isSpace)
 import System.Locale
 
-
 data HumanTimeLocale = HumanTimeLocale {
-		htintervals :: [(String, String)],
-		htlocale :: TimeLocale
-	} deriving (Eq, Ord, Show)
-
+		justNow       :: String
+  , secondsAgo    :: String -> String
+  , oneMinuteAgo  :: String
+  , minutesAgo    :: String -> String
+  , oneHourAgo    :: String
+  , aboutHoursAgo :: String -> String
+  , at            :: String -> String
+  , daysAgo       :: String -> String
+  , weekAgo       :: String -> String
+  , weeksAgo      :: String -> String
+  , onYear        :: String -> String
+	,	locale        :: TimeLocale
+	}
 
 defaultHumanTimeLocale :: HumanTimeLocale
 defaultHumanTimeLocale = HumanTimeLocale {
-	htintervals = [ (""," just now")
-	              , (""," " ++ (snd $ (intervals defaultTimeLocale)!!5) ++ " ago")
-	              , (""," one " ++ (fst $ (intervals defaultTimeLocale)!!4) ++ " ago")
-	              , (""," " ++ (snd $ (intervals defaultTimeLocale)!!4) ++ " ago")
-	              , (""," one " ++ (fst $ (intervals defaultTimeLocale)!!3) ++ " ago")
-	              , ("about "," " ++ (snd $ (intervals defaultTimeLocale)!!3) ++ " ago")
-	              , ("at ","")
-	              , (""," " ++ (snd $ (intervals defaultTimeLocale)!!2) ++ " ago")
-	              , (""," week ago")  -- !! 8
-	              , (""," weeks ago")
-	              , ("on ","")
-	              , ("on ","")
-	              ] ,
-	htlocale = defaultTimeLocale }
-	
+		justNow       = "just now"
+  , secondsAgo    = (++ " seconds ago")
+  , oneMinuteAgo  = "one minute ago"
+  , minutesAgo    = (++ " minutes ago")
+  , oneHourAgo    = "one hour ago"
+  , aboutHoursAgo = \x -> "about " ++ x ++ " hours ago"
+  , at            = ("at " ++)
+  , daysAgo       = (++ " days ago")
+  , weekAgo       = (++ " week ago")
+  , weeksAgo      = (++ " weeks ago")
+  , onYear        = ("on " ++)
+	, locale        = defaultTimeLocale
+  }
 
 
 -- | Based on @humanReadableTimeDiff@ found in
 --   <https://github.com/snoyberg/haskellers/blob/master/Haskellers.hs>,
 --   <https://github.com/snoyberg/haskellers/blob/master/LICENSE>
+humanReadableTime :: UTCTime -> IO String
+humanReadableTime = humanReadableTimeI18N defaultHumanTimeLocale
 
-humanReadableTime :: HumanTimeLocale -> UTCTime -> IO String
-humanReadableTime tl t = do
-    now <- getCurrentTime
-    return $ humanReadableTime' tl now t
-
--- | A pure form, takes the current time as an argument
-humanReadableTime' :: HumanTimeLocale
-                   -> UTCTime -- ^ current time
+-- | A pure form, takes current time as an argument
+humanReadableTime' :: UTCTime -- ^ current time
                    -> UTCTime -> String
-humanReadableTime' tl cur t = helper $ diffUTCTime cur t
+humanReadableTime' = humanReadableTimeI18N' defaultHumanTimeLocale
 
+-- | I18N version of `humanReadableTime`
+humanReadableTimeI18N :: HumanTimeLocale -> UTCTime -> IO String
+humanReadableTimeI18N tl t = do
+    now <- getCurrentTime
+    return $ humanReadableTimeI18N' tl now t
+
+-- | I18N version of `humanReadableTime'`
+humanReadableTimeI18N' :: HumanTimeLocale
+                       -> UTCTime -- ^ current time
+                       -> UTCTime -> String
+humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
     where
         minutes :: NominalDiffTime -> Double
         minutes n = realToFrac $ n / 60
@@ -87,20 +103,21 @@ humanReadableTime' tl cur t = helper $ diffUTCTime cur t
         trim = f . f where f = reverse . dropWhile isSpace
 
         old           = utcToLocalTime utc t
-        dow           = trim $! formatTime (htlocale tl) "%l:%M %p on %A" old
-        thisYear      = trim $! formatTime (htlocale tl) "%b %e" old
-        previousYears = trim $! formatTime (htlocale tl) "%b %e, %Y" old
+        format        = formatTime locale
+        dow           = trim $! format "%l:%M %p on %A" old
+        thisYear      = trim $! format "%b %e" old
+        previousYears = trim $! format "%b %e, %Y" old
 
         helper d 
-            | d         < 1  = (snd $ htintervals tl !! 0)
-            | d         < 60 = i2s d ++ (snd $ htintervals tl !! 1)
-            | minutes d < 2  = (snd $ htintervals tl !! 2)
-            | minutes d < 60 =  i2s (minutes d) ++ (snd $ htintervals tl !! 3)
-            | hours d   < 2  = (snd $ htintervals tl !! 4)
-            | hours d   < 24 = (fst $ htintervals tl !! 5) ++ i2s (hours d) ++ (snd $ htintervals tl !! 5)
-            | days d    < 5  = (fst $ htintervals tl !! 6) ++ dow ++ (snd $ htintervals tl !! 6)
-            | days d    < 10 = i2s (days d) ++ (snd $ htintervals tl !! 7)
-            | weeks d   < 2  = (fst $ htintervals tl !! 8) ++ i2s (weeks d) ++ (snd $ htintervals tl !! 8)
-            | weeks d   < 5  = i2s (weeks d) ++ (snd $ htintervals tl !! 9)
-            | years d   < 1  = (fst $ htintervals tl !! 10) ++ thisYear ++ (snd $ htintervals tl !! 10)
-            | otherwise      = (fst $ htintervals tl !! 11) ++ previousYears
+            | d         < 1  = justNow
+            | d         < 60 = secondsAgo $ i2s d
+            | minutes d < 2  = oneMinuteAgo
+            | minutes d < 60 = minutesAgo $ i2s (minutes d)
+            | hours d   < 2  = oneHourAgo
+            | hours d   < 24 = aboutHoursAgo $ i2s (hours d)
+            | days d    < 5  = at dow
+            | days d    < 10 = daysAgo $ i2s (days d)
+            | weeks d   < 2  = weekAgo $ i2s (weeks d)
+            | weeks d   < 5  = weeksAgo $ i2s (weeks d)
+            | years d   < 1  = onYear thisYear
+            | otherwise      = onYear previousYears
