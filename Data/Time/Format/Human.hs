@@ -33,14 +33,26 @@ data HumanTimeLocale = HumanTimeLocale
     , minutesAgo    :: String -> String
     , oneHourAgo    :: String
     , aboutHoursAgo :: String -> String
+    -- | Used when time difference is more than 24 hours but less than 5 days.
     , at            :: String -> String
     , daysAgo       :: String -> String
     , weekAgo       :: String -> String
     , weeksAgo      :: String -> String
     , onYear        :: String -> String
     , locale        :: TimeLocale
+    -- | Time format used with `at` member. See @Data.Time.Format@ for
+    --   details on formatting  sequences.
+    , dayOfWeekFmt  :: String
+    -- | Time format used when time difference is less than a year but more
+    --   than a month. Time formatted using this string will be passed
+    --   to `onYear`.
+    , thisYearFmt   :: String
+    -- | Time format used when time difference is at least one year. Time
+    --   formatted using this string will be passed to `onYear`.
+    , prevYearFmt   :: String
     }
 
+-- | Default human time locale uses English.
 defaultHumanTimeLocale :: HumanTimeLocale
 defaultHumanTimeLocale = HumanTimeLocale
     { justNow       = "just now"
@@ -55,6 +67,9 @@ defaultHumanTimeLocale = HumanTimeLocale
     , weeksAgo      = (++ " weeks ago")
     , onYear        = ("on " ++)
     , locale        = defaultTimeLocale
+    , dayOfWeekFmt  = "%l:%M %p on %A"
+    , thisYearFmt   = "%b %e"
+    , prevYearFmt   = "%b %e, %Y"
     }
 
 -- | Based on @humanReadableTimeDiff@ found in
@@ -102,9 +117,9 @@ humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
 
         old           = utcToLocalTime utc t
         format        = formatTime locale
-        dow           = trim $! format "%l:%M %p on %A" old
-        thisYear      = trim $! format "%b %e" old
-        previousYears = trim $! format "%b %e, %Y" old
+        dow           = trim $! format dayOfWeekFmt old
+        thisYear      = trim $! format thisYearFmt old
+        previousYears = trim $! format prevYearFmt old
 
         helper d
             | d         < 1  = justNow
