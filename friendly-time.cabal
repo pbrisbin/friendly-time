@@ -9,7 +9,7 @@ author:              Patrick Brisbin
 maintainer:          me@pbrisbin.com
 category:            Web, Yesod
 build-type:          Simple
-cabal-version:       >=1.6
+cabal-version:       >=1.8
 
 library
   exposed-modules: Data.Time.Format.Human
@@ -19,6 +19,17 @@ library
                , old-locale
 
   ghc-options: -Wall
+
+test-suite tests
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests, .
+  main-is: tests/Main.hs
+  build-depends: HUnit
+               , test-framework
+               , test-framework-hunit
+               , base
+               , time
+               , old-locale
 
 source-repository head
   type:         git
