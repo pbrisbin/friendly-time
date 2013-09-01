@@ -34,7 +34,9 @@ data HumanTimeLocale = HumanTimeLocale
     , oneHourAgo    :: String
     , aboutHoursAgo :: String -> String
     -- | Used when time difference is more than 24 hours but less than 5 days.
-    , at            :: String -> String
+    -- First argument is the day of week of the older time, second is string
+    -- formatted with `dayOfWeekFmt`.
+    , at            :: Int -> String -> String
     , daysAgo       :: String -> String
     , weekAgo       :: String -> String
     , weeksAgo      :: String -> String
@@ -61,7 +63,7 @@ defaultHumanTimeLocale = HumanTimeLocale
     , minutesAgo    = (++ " minutes ago")
     , oneHourAgo    = "one hour ago"
     , aboutHoursAgo = \x -> "about " ++ x ++ " hours ago"
-    , at            = ("at " ++)
+    , at            = \_ -> ("at " ++)
     , daysAgo       = (++ " days ago")
     , weekAgo       = (++ " week ago")
     , weeksAgo      = (++ " weeks ago")
@@ -115,6 +117,9 @@ humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
 
         trim = f . f where f = reverse . dropWhile isSpace
 
+        oldDayOfWeek :: Int
+        oldDayOfWeek = read $ formatTime defaultTimeLocale "%u" t
+
         old           = utcToLocalTime utc t
         format        = formatTime locale
         dow           = trim $! format dayOfWeekFmt old
@@ -128,7 +133,7 @@ humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
             | minutes d < 60 = minutesAgo $ i2s (minutes d)
             | hours d   < 2  = oneHourAgo
             | hours d   < 24 = aboutHoursAgo $ i2s (hours d)
-            | days d    < 5  = at dow
+            | days d    < 5  = at oldDayOfWeek dow
             | days d    < 10 = daysAgo $ i2s (days d)
             | weeks d   < 2  = weekAgo $ i2s (weeks d)
             | weeks d   < 5  = weeksAgo $ i2s (weeks d)
