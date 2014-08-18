@@ -42,6 +42,7 @@ data HumanTimeLocale = HumanTimeLocale
     , weeksAgo      :: String -> String
     , onYear        :: String -> String
     , locale        :: TimeLocale
+    , timeZone      :: TimeZone
     -- | Time format used with `at` member. See @Data.Time.Format@ for
     --   details on formatting  sequences.
     , dayOfWeekFmt  :: String
@@ -69,6 +70,7 @@ defaultHumanTimeLocale = HumanTimeLocale
     , weeksAgo      = (++ " weeks ago")
     , onYear        = ("on " ++)
     , locale        = defaultTimeLocale
+    , timeZone      = utc
     , dayOfWeekFmt  = "%l:%M %p on %A"
     , thisYearFmt   = "%b %e"
     , prevYearFmt   = "%b %e, %Y"
@@ -120,7 +122,7 @@ humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
         oldDayOfWeek :: Int
         oldDayOfWeek = read $ formatTime defaultTimeLocale "%u" t
 
-        old           = utcToLocalTime utc t
+        old           = utcToLocalTime timeZone t
         format        = formatTime locale
         dow           = trim $! format dayOfWeekFmt old
         thisYear      = trim $! format thisYearFmt old
