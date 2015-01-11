@@ -7,7 +7,7 @@ module Data.Time.Format.Human.Duration
 
 import Data.Time (NominalDiffTime, UTCTime, diffUTCTime)
 
-data Tense = Past deriving (Eq, Show)
+data Tense = Past | Future deriving (Eq, Show)
 
 data Unit = Seconds | Minutes deriving (Eq, Show)
 
@@ -22,9 +22,11 @@ toDuration now = helper . diffUTCTime now
   where
     helper :: NominalDiffTime -> Duration
     helper d
-        | d > -1 && d < 1 = Duration Past Seconds 0
-        | d > -60 && d < 60 = Duration Past Seconds $ toSeconds d
-        | d > -(60*60) && d < (60*60) = Duration Past Minutes $ toMinutes d
+        | between d (-1) 1 = Duration Past Seconds 0
+        | between d (-60) 0 = Duration Future Seconds $ negate $ toSeconds d
+        | between d 0 60 = Duration Past Seconds $ toSeconds d
+        | between d (-3600) 0 = Duration Future Minutes $ negate $ toMinutes d
+        | between d 0 3600 = Duration Past Minutes $ toMinutes d
         | otherwise = undefined
 
     toSeconds :: NominalDiffTime -> Int
@@ -32,3 +34,6 @@ toDuration now = helper . diffUTCTime now
 
     toMinutes :: NominalDiffTime -> Int
     toMinutes s = toSeconds $ s / 60
+
+    between :: Ord a => a -> a -> a -> Bool
+    between d m n = d > m && d < n
