@@ -1,15 +1,8 @@
 {-# LANGUAGE RecordWildCards #-}
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Time.Format.Human
--- Copyright   :  (c) Patrick Brisbin 2010 
--- License     :  as-is
 --
--- Maintainer  :  pbrisbin@gmail.com
--- Stability   :  unstable
--- Portability :  unportable
---
--- Prints a @'UTCTime'@ as "a few seconds ago" or "3 days ago" and similar.
+-- Print a @'UTCTime'@ as "a few seconds ago" or "3 days ago" and similar.
 --
 -------------------------------------------------------------------------------
 module Data.Time.Format.Human
