@@ -36,5 +36,12 @@ spec = describe "Duration" $ do
         toDuration n t `shouldBe` Duration Past Minutes 59
         toDuration t n `shouldBe` Duration Future Minutes 59
 
+    it "produces hours for duration of less than one day" $ do
+        let n = parseTime' "2015-01-01 23:59:00"
+        let t = parseTime' "2015-01-01 01:00:00"
+
+        toDuration n t `shouldBe` Duration Past Hours 22
+        toDuration t n `shouldBe` Duration Future Hours 22
+
 parseTime' :: String -> UTCTime
 parseTime' = fromJust . parseTime defaultTimeLocale "%F %T%Q"
