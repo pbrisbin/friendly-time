@@ -23,27 +23,27 @@ toDuration now = helper . diffUTCTime now
     helper :: NominalDiffTime -> Duration
     helper d
         | between d (-1) 1 = Duration Past Seconds 0
-        | between d 0 60 = Duration Past Seconds $ toSeconds d
-        | between d (-60) 0 = Duration Future Seconds $ negate $ toSeconds d
-        | between d 0 3600 = Duration Past Minutes $ toMinutes d
-        | between d (-3600) 0 = Duration Future Minutes $ negate $ toMinutes d
-        | between d 0 86400 = Duration Past Hours $ toHours d
-        | between d (-86400) 0 = Duration Future Hours $ negate $ toHours d
-        | between d 0 864000 = Duration Past Days $ toDays d
-        | between d (-864000) 0 = Duration Future Days $ negate $ toDays d
+        | between (seconds d) 0 60 = Duration Past Seconds $ seconds d
+        | between (seconds d) (-60) 0 = Duration Future Seconds $ negate $ seconds d
+        | between (minutes d) 0 60 = Duration Past Minutes $ minutes d
+        | between (minutes d) (-60) 0 = Duration Future Minutes $ negate $ minutes d
+        | between (hours d) 0 24 = Duration Past Hours $ hours d
+        | between (hours d) (-24) 0 = Duration Future Hours $ negate $ hours d
+        | between (days d) 0 10 = Duration Past Days $ days d
+        | between (days d) (-10) 0 = Duration Future Days $ negate $ days d
         | otherwise = undefined
 
-    toSeconds :: NominalDiffTime -> Int
-    toSeconds = truncate
+    seconds :: NominalDiffTime -> Int
+    seconds = truncate
 
-    toMinutes :: NominalDiffTime -> Int
-    toMinutes s = truncate $ s / 60
+    minutes :: NominalDiffTime -> Int
+    minutes s = truncate $ s / 60
 
-    toHours :: NominalDiffTime -> Int
-    toHours s = truncate $ s / 3600
+    hours :: NominalDiffTime -> Int
+    hours s = truncate $ s / 3600
 
-    toDays :: NominalDiffTime -> Int
-    toDays s = truncate $ s / 86400
+    days :: NominalDiffTime -> Int
+    days s = truncate $ s / 86400
 
     between :: Ord a => a -> a -> a -> Bool
     between d m n = d > m && d < n
