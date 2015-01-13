@@ -28,18 +28,18 @@ import System.Locale
 
 data HumanTimeLocale = HumanTimeLocale
     { justNow       :: String
-    , secondsAgo    :: String -> String
-    , oneMinuteAgo  :: String
-    , minutesAgo    :: String -> String
-    , oneHourAgo    :: String
-    , aboutHoursAgo :: String -> String
+    , secondsAgo    :: Bool -> String -> String
+    , oneMinuteAgo  :: Bool -> String
+    , minutesAgo    :: Bool -> String -> String
+    , oneHourAgo    :: Bool -> String
+    , aboutHoursAgo :: Bool -> String -> String
     -- | Used when time difference is more than 24 hours but less than 5 days.
     -- First argument is the day of week of the older time, second is string
     -- formatted with `dayOfWeekFmt`.
     , at            :: Int -> String -> String
-    , daysAgo       :: String -> String
-    , weekAgo       :: String -> String
-    , weeksAgo      :: String -> String
+    , daysAgo       :: Bool -> String -> String
+    , weekAgo       :: Bool -> String -> String
+    , weeksAgo      :: Bool -> String -> String
     , onYear        :: String -> String
     , locale        :: TimeLocale
     , timeZone      :: TimeZone
@@ -59,15 +59,15 @@ data HumanTimeLocale = HumanTimeLocale
 defaultHumanTimeLocale :: HumanTimeLocale
 defaultHumanTimeLocale = HumanTimeLocale
     { justNow       = "just now"
-    , secondsAgo    = (++ " seconds ago")
-    , oneMinuteAgo  = "one minute ago"
-    , minutesAgo    = (++ " minutes ago")
-    , oneHourAgo    = "one hour ago"
-    , aboutHoursAgo = \x -> "about " ++ x ++ " hours ago"
+    , secondsAgo    = \f -> (++ " seconds" ++ dir f)
+    , oneMinuteAgo  = \f -> "one minute" ++ dir f
+    , minutesAgo    = \f -> (++ " minutes" ++ dir f)
+    , oneHourAgo    = \f -> "one hour" ++ dir f
+    , aboutHoursAgo = \f x -> "about " ++ x ++ " hours" ++ dir f
     , at            = \_ -> ("at " ++)
-    , daysAgo       = (++ " days ago")
-    , weekAgo       = (++ " week ago")
-    , weeksAgo      = (++ " weeks ago")
+    , daysAgo       = \f -> (++ " days" ++ dir f)
+    , weekAgo       = \f -> (++ " week" ++ dir f)
+    , weeksAgo      = \f -> (++ " weeks" ++ dir f)
     , onYear        = ("on " ++)
     , locale        = defaultTimeLocale
     , timeZone      = utc
@@ -75,6 +75,8 @@ defaultHumanTimeLocale = HumanTimeLocale
     , thisYearFmt   = "%b %e"
     , prevYearFmt   = "%b %e, %Y"
     }
+    where dir True  = " from now"
+          dir False = " ago"
 
 -- | Based on @humanReadableTimeDiff@ found in
 --   <https://github.com/snoyberg/haskellers/blob/master/Haskellers.hs>,
@@ -128,16 +130,18 @@ humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
         thisYear      = trim $! format thisYearFmt old
         previousYears = trim $! format prevYearFmt old
 
-        helper d
+        helper d = helper' (d < 0) (abs d)
+
+        helper' future d
             | d         < 1  = justNow
-            | d         < 60 = secondsAgo $ i2s d
-            | minutes d < 2  = oneMinuteAgo
-            | minutes d < 60 = minutesAgo $ i2s (minutes d)
-            | hours d   < 2  = oneHourAgo
-            | hours d   < 24 = aboutHoursAgo $ i2s (hours d)
+            | d         < 60 = secondsAgo future $ i2s d
+            | minutes d < 2  = oneMinuteAgo future
+            | minutes d < 60 = minutesAgo future $ i2s (minutes d)
+            | hours d   < 2  = oneHourAgo future
+            | hours d   < 24 = aboutHoursAgo future $ i2s (hours d)
             | days d    < 5  = at oldDayOfWeek dow
-            | days d    < 10 = daysAgo $ i2s (days d)
-            | weeks d   < 2  = weekAgo $ i2s (weeks d)
-            | weeks d   < 5  = weeksAgo $ i2s (weeks d)
+            | days d    < 10 = daysAgo future $ i2s (days d)
+            | weeks d   < 2  = weekAgo future $ i2s (weeks d)
+            | weeks d   < 5  = weeksAgo future $ i2s (weeks d)
             | years d   < 1  = onYear thisYear
             | otherwise      = onYear previousYears
