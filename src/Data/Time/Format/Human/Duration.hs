@@ -33,7 +33,7 @@ toDuration now = helper . diffUTCTime now
     toSeconds = truncate
 
     toMinutes :: NominalDiffTime -> Int
-    toMinutes s = toSeconds $ s / 60
+    toMinutes s = truncate $ s / 60
 
     between :: Ord a => a -> a -> a -> Bool
     between d m n = d > m && d < n
