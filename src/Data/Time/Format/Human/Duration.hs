@@ -23,10 +23,10 @@ toDuration now = helper . diffUTCTime now
     helper :: NominalDiffTime -> Duration
     helper d
         | between d (-1) 1 = Duration Past Seconds 0
-        | between d (-60) 0 = Duration Future Seconds $ negate $ toSeconds d
         | between d 0 60 = Duration Past Seconds $ toSeconds d
-        | between d (-3600) 0 = Duration Future Minutes $ negate $ toMinutes d
+        | between d (-60) 0 = Duration Future Seconds $ negate $ toSeconds d
         | between d 0 3600 = Duration Past Minutes $ toMinutes d
+        | between d (-3600) 0 = Duration Future Minutes $ negate $ toMinutes d
         | otherwise = undefined
 
     toSeconds :: NominalDiffTime -> Int
