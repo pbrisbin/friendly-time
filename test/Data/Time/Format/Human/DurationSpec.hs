@@ -47,11 +47,11 @@ spec = describe "Duration" $ do
         pendingWith "At X on Y"
 
     it "produces days for duration of less than 10 days" $ do
-        let n = parseTime' "2015-01-09 01:00:00"
+        let n = parseTime' "2015-01-10 01:00:00"
         let t = parseTime' "2015-01-01 01:00:00"
 
-        toDuration n t `shouldBe` Duration Past Days 8
-        toDuration t n `shouldBe` Duration Future Days 8
+        toDuration n t `shouldBe` Duration Past Days 9
+        toDuration t n `shouldBe` Duration Future Days 9
 
 parseTime' :: String -> UTCTime
 parseTime' = fromJust . parseTime defaultTimeLocale "%F %T%Q"
