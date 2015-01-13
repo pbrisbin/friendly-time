@@ -6,93 +6,51 @@
 --
 -------------------------------------------------------------------------------
 module Data.Time.Format.Human
-    ( humanReadableTime
-    , humanReadableTime'
-    , humanReadableTimeI18N
-    , humanReadableTimeI18N'
-    , HumanTimeLocale(..)
-    , defaultHumanTimeLocale
+    (
+    -- * IO functions for formatting times relative to "now"
+      formatHumanReadable
+    , formatHumanReadableWith
+
+    -- * Pure versions for formatting times relative to another time
+    , formatHumanReadable'
+    , formatHumanReadableWith'
+
+    -- * For customizing via the @With@ functions
+    , module Data.Time.Format.Human.Translations
     ) where
 
-import Data.Time
+import Data.Time.Format.Human.Translations
 
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Char (isSpace)
-import System.Locale
+import Data.Time
+    ( NominalDiffTime
+    , UTCTime
+    , diffUTCTime
+    , formatTime
+    , getCurrentTime
+    , utcToLocalTime
+    )
+import System.Locale (defaultTimeLocale)
 
-data HumanTimeLocale = HumanTimeLocale
-    { justNow       :: String
-    , secondsAgo    :: Bool -> String -> String
-    , oneMinuteAgo  :: Bool -> String
-    , minutesAgo    :: Bool -> String -> String
-    , oneHourAgo    :: Bool -> String
-    , aboutHoursAgo :: Bool -> String -> String
-    -- | Used when time difference is more than 24 hours but less than 5 days.
-    -- First argument is the day of week of the older time, second is string
-    -- formatted with `dayOfWeekFmt`.
-    , at            :: Int -> String -> String
-    , daysAgo       :: Bool -> String -> String
-    , weekAgo       :: Bool -> String -> String
-    , weeksAgo      :: Bool -> String -> String
-    , onYear        :: String -> String
-    , locale        :: TimeLocale
-    , timeZone      :: TimeZone
-    -- | Time format used with `at` member. See @Data.Time.Format@ for
-    --   details on formatting  sequences.
-    , dayOfWeekFmt  :: String
-    -- | Time format used when time difference is less than a year but more
-    --   than a month. Time formatted using this string will be passed
-    --   to `onYear`.
-    , thisYearFmt   :: String
-    -- | Time format used when time difference is at least one year. Time
-    --   formatted using this string will be passed to `onYear`.
-    , prevYearFmt   :: String
-    }
+-- | Format time relative to now with default (english) translations
+formatHumanReadable :: MonadIO m => UTCTime -> m String
+formatHumanReadable = formatHumanReadableWith def
 
--- | Default human time locale uses English.
-defaultHumanTimeLocale :: HumanTimeLocale
-defaultHumanTimeLocale = HumanTimeLocale
-    { justNow       = "just now"
-    , secondsAgo    = \f -> (++ " seconds" ++ dir f)
-    , oneMinuteAgo  = \f -> "one minute" ++ dir f
-    , minutesAgo    = \f -> (++ " minutes" ++ dir f)
-    , oneHourAgo    = \f -> "one hour" ++ dir f
-    , aboutHoursAgo = \f x -> "about " ++ x ++ " hours" ++ dir f
-    , at            = \_ -> ("at " ++)
-    , daysAgo       = \f -> (++ " days" ++ dir f)
-    , weekAgo       = \f -> (++ " week" ++ dir f)
-    , weeksAgo      = \f -> (++ " weeks" ++ dir f)
-    , onYear        = ("on " ++)
-    , locale        = defaultTimeLocale
-    , timeZone      = utc
-    , dayOfWeekFmt  = "%l:%M %p on %A"
-    , thisYearFmt   = "%b %e"
-    , prevYearFmt   = "%b %e, %Y"
-    }
-    where dir True  = " from now"
-          dir False = " ago"
+-- | Format time relative to now with the given translations
+formatHumanReadableWith :: MonadIO m => Translations -> UTCTime -> m String
+formatHumanReadableWith tl t = do
+    now <- liftIO $ getCurrentTime
+    return $ formatHumanReadableWith' tl now t
 
--- | Based on @humanReadableTimeDiff@ found in
---   <https://github.com/snoyberg/haskellers/blob/master/Haskellers.hs>,
---   <https://github.com/snoyberg/haskellers/blob/master/LICENSE>
-humanReadableTime :: UTCTime -> IO String
-humanReadableTime = humanReadableTimeI18N defaultHumanTimeLocale
+-- | Format times relative to each other
+formatHumanReadable' :: UTCTime -- ^ Taken as "now" w.r.t. "ago" vs "from now"
+                     -> UTCTime -> String
+formatHumanReadable' = formatHumanReadableWith' def
 
--- | A pure form, takes current time as an argument
-humanReadableTime' :: UTCTime -- ^ current time
-                   -> UTCTime -> String
-humanReadableTime' = humanReadableTimeI18N' defaultHumanTimeLocale
-
--- | I18N version of `humanReadableTime`
-humanReadableTimeI18N :: HumanTimeLocale -> UTCTime -> IO String
-humanReadableTimeI18N tl t = do
-    now <- getCurrentTime
-    return $ humanReadableTimeI18N' tl now t
-
--- | I18N version of `humanReadableTime'`
-humanReadableTimeI18N' :: HumanTimeLocale
-                       -> UTCTime -- ^ current time
-                       -> UTCTime -> String
-humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
+-- | Format times relative to each other with the given translations
+formatHumanReadableWith' :: Translations -> UTCTime -> UTCTime -> String
+formatHumanReadableWith' (Translations{..}) cur t = helper $ diffUTCTime cur t
     where
         minutes :: NominalDiffTime -> Double
         minutes n = realToFrac $ n / 60
