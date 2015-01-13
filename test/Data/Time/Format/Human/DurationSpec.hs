@@ -53,5 +53,12 @@ spec = describe "Duration" $ do
         toDuration n t `shouldBe` Duration Past Days 9
         toDuration t n `shouldBe` Duration Future Days 9
 
+    it "produces weeks if less than 5 weeks" $ do
+        let n = parseTime' "2015-01-30 01:00:00"
+        let t = parseTime' "2015-01-01 01:00:00"
+
+        toDuration n t `shouldBe` Duration Past Weeks 4
+        toDuration t n `shouldBe` Duration Future Weeks 4
+
 parseTime' :: String -> UTCTime
 parseTime' = fromJust . parseTime defaultTimeLocale "%F %T%Q"

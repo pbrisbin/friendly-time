@@ -9,7 +9,7 @@ import Data.Time (NominalDiffTime, UTCTime, diffUTCTime)
 
 data Tense = Past | Future deriving (Eq, Show)
 
-data Unit = Seconds | Minutes | Hours | Days deriving (Eq, Show)
+data Unit = Seconds | Minutes | Hours | Days | Weeks deriving (Eq, Show)
 
 data Duration = Duration
     { durationTense :: !Tense
@@ -31,6 +31,8 @@ toDuration now = helper . diffUTCTime now
         | between (hours d) (-24) 0 = Duration Future Hours $ negate $ hours d
         | between (days d) 0 10 = Duration Past Days $ days d
         | between (days d) (-10) 0 = Duration Future Days $ negate $ days d
+        | between (weeks d) 0 5 = Duration Past Weeks $ weeks d
+        | between (weeks d) (-5) 0 = Duration Future Weeks $ negate $ weeks d
         | otherwise = undefined
 
     seconds :: NominalDiffTime -> Int
@@ -40,10 +42,13 @@ toDuration now = helper . diffUTCTime now
     minutes s = truncate $ s / 60
 
     hours :: NominalDiffTime -> Int
-    hours s = truncate $ s / 3600
+    hours s = truncate $ s / (60*60)
 
     days :: NominalDiffTime -> Int
-    days s = truncate $ s / 86400
+    days s = truncate $ s / (60*60*24)
+
+    weeks :: NominalDiffTime -> Int
+    weeks s = truncate $ s / (60*60*24*7)
 
     between :: Ord a => a -> a -> a -> Bool
     between d m n = d > m && d < n
