@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 -------------------------------------------------------------------------------
 -- |
@@ -17,7 +18,11 @@ module Data.Time.Format.Human
 import Data.Time
 
 import Data.Char (isSpace)
-import System.Locale
+
+#if !MIN_VERSION_time(1,5,0)
+import System.Locale (TimeLocale, defaultTimeLocale)
+#endif
+
 
 data HumanTimeLocale = HumanTimeLocale
     { justNow       :: String
