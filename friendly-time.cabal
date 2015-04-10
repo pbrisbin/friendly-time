@@ -2,6 +2,7 @@ name:                   friendly-time
 version:                0.3
 author:                 Pat Brisbin <pbrisbin@gmail.com>
 maintainer:             Pat Brisbin <pbrisbin@gmail.com>
+category:               Web, Yesod
 license:                BSD3
 license-file:           LICENSE
 synopsis:               Print time information in friendly ways
