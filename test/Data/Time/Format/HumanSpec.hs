@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Data.Time.Format.HumanSpec
     ( main
     , spec
@@ -7,9 +9,14 @@ import Test.Hspec
 import Data.Time.Format.Human
 
 import Data.Maybe (fromJust)
-import Data.Time (UTCTime)
+import Data.Time
 import Data.Time.Format (parseTime)
+
+#if !MIN_VERSION_time(1,5,0)
 import System.Locale (defaultTimeLocale)
+parseTimeM _ = parseTime
+#endif
+
 
 main :: IO ()
 main = hspec spec
@@ -89,4 +96,4 @@ spec = describe "humanReadableTime'" $ do
         humanReadableTime' t n `shouldBe` "on Dec 30, 2025"
 
 parseTime' :: String -> UTCTime
-parseTime' = fromJust . parseTime defaultTimeLocale "%F %T%Q"
+parseTime' = fromJust . parseTimeM True defaultTimeLocale "%F %T%Q"

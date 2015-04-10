@@ -17,7 +17,7 @@ library
   ghc-options:          -Wall
   exposed-modules:      Data.Time.Format.Human
   build-depends:        base >= 4 && < 5
-                      , time
+                      , time >= 1.4
                       , old-locale
 
 test-suite spec
@@ -28,7 +28,7 @@ test-suite spec
   build-depends:        base
                       , hspec
                       , friendly-time
-                      , time
+                      , time >= 1.4
                       , old-locale
 
 source-repository head
