@@ -21,8 +21,6 @@ import Data.Char (isSpace)
 
 #if !MIN_VERSION_time(1,5,0)
 import System.Locale (TimeLocale, defaultTimeLocale)
-#else
-import Data.Time (TimeLocale, defaultTimeLocale)
 #endif
 
 
