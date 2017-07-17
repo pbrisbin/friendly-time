@@ -1,0 +1,27 @@
+name: friendly-time
+version: '0.4'
+synopsis: Print time information in friendly ways
+description: Print time information in friendly ways
+category: Web, Yesod
+author: Pat Brisbin <pbrisbin@gmail.com>
+maintainer: Pat Brisbin <pbrisbin@gmail.com>
+license: BSD3
+git: git://github.com/pbrisbin/friendly-time.git
+dependencies:
+- time >=1.4
+- old-locale
+library:
+  source-dirs: src
+  ghc-options: -Wall
+  exposed-modules:
+  - Data.Time.Format.Human
+  dependencies:
+  - base >=4 && <5
+tests:
+  spec:
+    main: Spec.hs
+    source-dirs: test
+    dependencies:
+    - base
+    - hspec
+    - friendly-time

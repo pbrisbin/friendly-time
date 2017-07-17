@@ -10,7 +10,6 @@ import Data.Time.Format.Human
 
 import Data.Maybe (fromJust)
 import Data.Time
-import Data.Time.Format (parseTime)
 
 #if !MIN_VERSION_time(1,5,0)
 import System.Locale (defaultTimeLocale)
