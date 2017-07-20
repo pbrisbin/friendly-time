@@ -16,6 +16,7 @@ module Data.Time.Format.Human
     ) where
 
 import Data.Time
+
 import Data.Char (isSpace)
 
 #if !MIN_VERSION_time(1,5,0)
@@ -74,7 +75,6 @@ defaultHumanTimeLocale = HumanTimeLocale
     }
     where dir True  = " from now"
           dir False = " ago"
-
 
 -- | Based on @humanReadableTimeDiff@ found in
 --   <https://github.com/snoyberg/haskellers/blob/master/Haskellers.hs>,
