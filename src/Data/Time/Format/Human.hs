@@ -143,5 +143,3 @@ humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
             | weeks d   < 5  = weeksAgo future $ i2s (weeks d)
             | years d   < 1  = onYear thisYear
             | otherwise      = onYear previousYears
-
-
