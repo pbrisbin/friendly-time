@@ -1,5 +1,5 @@
 name: friendly-time
-version: '0.4'
+version: '0.4.1'
 synopsis: Print time information in friendly ways
 description: Print time information in friendly ways
 category: Web, Yesod
