@@ -15,6 +15,7 @@ library:
   ghc-options: -Wall
   exposed-modules:
   - Data.Time.Format.Human
+  - Data.Time.Format.Human.Locales
   dependencies:
   - base >=4 && <5
 tests:
