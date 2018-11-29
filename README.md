@@ -6,7 +6,11 @@ Friendly time formats (so far, just one).
 
 Fuzzy time in relation to now.
 
-~~~ { .haskell }
+```hs
 humanReadableTime :: UTCDate -> IO String
--- ==> "just now", "1 minute ago", "wednesday", etc
-~~~
+-- => "just now", "1 minute ago", "wednesday", etc
+```
+
+---
+
+[LICENSE](./LICENSE) | [CHANGELOG](./CHANGELOG.md)
