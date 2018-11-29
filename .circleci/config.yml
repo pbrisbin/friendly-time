@@ -1,0 +1,45 @@
+---
+version: 2.0
+
+jobs:
+  build:
+    docker:
+      # https://github.com/haskell-works/stack-build/blob/master/minimal/Dockerfile
+      - image: quay.io/haskell_works/stack-build-minimal
+    environment:
+      STACK_ARGUMENTS: --no-terminal
+    steps:
+      - checkout
+      - run:
+          name: Upgrade Stack
+          command: stack upgrade
+      - run:
+          name: Digest
+          command: git ls-files | xargs md5sum > digest
+      - restore_cache:
+          keys:
+            - 1-{{ .Branch }}-{{ checksum "digest" }}
+            - 1-{{ .Branch }}-
+            - 1-master-
+      - run:
+          name: Dependencies
+          command: make setup setup.lint
+      - run:
+          name: Build
+          command: make build
+      - save_cache:
+          key: 1-{{ .Branch }}-{{ checksum "digest" }}
+          paths:
+            - ~/.stack
+            - ./.stack-work
+      - run:
+          name: Test
+          command: make test
+      - run:
+          name: Lint
+          command: |
+            curl \
+              --output .hlint.yaml \
+              https://raw.githubusercontent.com/pbrisbin/dotfiles/master/hlint.yaml
+
+            make lint

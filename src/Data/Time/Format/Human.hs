@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE RecordWildCards #-}
 -------------------------------------------------------------------------------
 -- |
@@ -15,14 +14,8 @@ module Data.Time.Format.Human
     , defaultHumanTimeLocale
     ) where
 
-import Data.Time
-
 import Data.Char (isSpace)
-
-#if !MIN_VERSION_time(1,5,0)
-import System.Locale (TimeLocale, defaultTimeLocale)
-#endif
-
+import Data.Time
 
 data HumanTimeLocale = HumanTimeLocale
     { justNow       :: String
@@ -56,25 +49,26 @@ data HumanTimeLocale = HumanTimeLocale
 -- | Default human time locale uses English.
 defaultHumanTimeLocale :: HumanTimeLocale
 defaultHumanTimeLocale = HumanTimeLocale
-    { justNow       = "just now"
-    , secondsAgo    = \f -> (++ " seconds" ++ dir f)
-    , oneMinuteAgo  = \f -> "one minute" ++ dir f
-    , minutesAgo    = \f -> (++ " minutes" ++ dir f)
-    , oneHourAgo    = \f -> "one hour" ++ dir f
+    { justNow = "just now"
+    , secondsAgo = \f -> (++ " seconds" ++ dir f)
+    , oneMinuteAgo = \f -> "one minute" ++ dir f
+    , minutesAgo = \f -> (++ " minutes" ++ dir f)
+    , oneHourAgo = \f -> "one hour" ++ dir f
     , aboutHoursAgo = \f x -> "about " ++ x ++ " hours" ++ dir f
-    , at            = \_ -> ("at " ++)
-    , daysAgo       = \f -> (++ " days" ++ dir f)
-    , weekAgo       = \f -> (++ " week" ++ dir f)
-    , weeksAgo      = \f -> (++ " weeks" ++ dir f)
-    , onYear        = ("on " ++)
-    , locale        = defaultTimeLocale
-    , timeZone      = utc
-    , dayOfWeekFmt  = "%l:%M %p on %A"
-    , thisYearFmt   = "%b %e"
-    , prevYearFmt   = "%b %e, %Y"
+    , at = const ("at " ++)
+    , daysAgo = \f -> (++ " days" ++ dir f)
+    , weekAgo = \f -> (++ " week" ++ dir f)
+    , weeksAgo = \f -> (++ " weeks" ++ dir f)
+    , onYear = ("on " ++)
+    , locale = defaultTimeLocale
+    , timeZone = utc
+    , dayOfWeekFmt = "%l:%M %p on %A"
+    , thisYearFmt = "%b %e"
+    , prevYearFmt = "%b %e, %Y"
     }
-    where dir True  = " from now"
-          dir False = " ago"
+  where
+    dir True = " from now"
+    dir False = " ago"
 
 -- | Based on @humanReadableTimeDiff@ found in
 --   <https://github.com/snoyberg/haskellers/blob/master/Haskellers.hs>,
@@ -83,8 +77,10 @@ humanReadableTime :: UTCTime -> IO String
 humanReadableTime = humanReadableTimeI18N defaultHumanTimeLocale
 
 -- | A pure form, takes current time as an argument
-humanReadableTime' :: UTCTime -- ^ current time
-                   -> UTCTime -> String
+humanReadableTime'
+    :: UTCTime -- ^ current time
+    -> UTCTime
+    -> String
 humanReadableTime' = humanReadableTimeI18N' defaultHumanTimeLocale
 
 -- | I18N version of `humanReadableTime`
@@ -94,52 +90,54 @@ humanReadableTimeI18N tl t = do
     return $ humanReadableTimeI18N' tl now t
 
 -- | I18N version of `humanReadableTime'`
-humanReadableTimeI18N' :: HumanTimeLocale
-                       -> UTCTime -- ^ current time
-                       -> UTCTime -> String
-humanReadableTimeI18N' (HumanTimeLocale {..}) cur t = helper $ diffUTCTime cur t
-    where
-        minutes :: NominalDiffTime -> Double
-        minutes n = realToFrac $ n / 60
+humanReadableTimeI18N'
+    :: HumanTimeLocale
+    -> UTCTime -- ^ current time
+    -> UTCTime
+    -> String
+humanReadableTimeI18N' HumanTimeLocale {..} cur t = helper $ diffUTCTime cur t
+  where
+    minutes :: NominalDiffTime -> Double
+    minutes n = realToFrac $ n / 60
 
-        hours :: NominalDiffTime -> Double
-        hours n = minutes n / 60
+    hours :: NominalDiffTime -> Double
+    hours n = minutes n / 60
 
-        days :: NominalDiffTime -> Double
-        days n = hours n / 24
+    days :: NominalDiffTime -> Double
+    days n = hours n / 24
 
-        weeks :: NominalDiffTime -> Double
-        weeks n = days n / 7
+    weeks :: NominalDiffTime -> Double
+    weeks n = days n / 7
 
-        years :: NominalDiffTime -> Double
-        years n = days n / 365
+    years :: NominalDiffTime -> Double
+    years n = days n / 365
 
-        i2s :: RealFrac a => a -> String
-        i2s n = show m where m = truncate n :: Int
+    i2s :: RealFrac a => a -> String
+    i2s n = show m where m = truncate n :: Int
 
-        trim = f . f where f = reverse . dropWhile isSpace
+    trim = f . f where f = reverse . dropWhile isSpace
 
-        oldDayOfWeek :: Int
-        oldDayOfWeek = read $ formatTime defaultTimeLocale "%u" t
+    oldDayOfWeek :: Int
+    oldDayOfWeek = read $ formatTime defaultTimeLocale "%u" t
 
-        old           = utcToLocalTime timeZone t
-        format        = formatTime locale
-        dow           = trim $! format dayOfWeekFmt old
-        thisYear      = trim $! format thisYearFmt old
-        previousYears = trim $! format prevYearFmt old
+    old = utcToLocalTime timeZone t
+    format = formatTime locale
+    dow = trim $! format dayOfWeekFmt old
+    thisYear = trim $! format thisYearFmt old
+    previousYears = trim $! format prevYearFmt old
 
-        helper d = helper' (d < 0) (abs d)
+    helper d = helper' (d < 0) (abs d)
 
-        helper' future d
-            | d         < 1  = justNow
-            | d         < 60 = secondsAgo future $ i2s d
-            | minutes d < 2  = oneMinuteAgo future
-            | minutes d < 60 = minutesAgo future $ i2s (minutes d)
-            | hours d   < 2  = oneHourAgo future
-            | hours d   < 24 = aboutHoursAgo future $ i2s (hours d)
-            | days d    < 5  = at oldDayOfWeek dow
-            | days d    < 10 = daysAgo future $ i2s (days d)
-            | weeks d   < 2  = weekAgo future $ i2s (weeks d)
-            | weeks d   < 5  = weeksAgo future $ i2s (weeks d)
-            | years d   < 1  = onYear thisYear
-            | otherwise      = onYear previousYears
+    helper' future d
+        | d < 1 = justNow
+        | d < 60 = secondsAgo future $ i2s d
+        | minutes d < 2 = oneMinuteAgo future
+        | minutes d < 60 = minutesAgo future $ i2s (minutes d)
+        | hours d < 2 = oneHourAgo future
+        | hours d < 24 = aboutHoursAgo future $ i2s (hours d)
+        | days d < 5 = at oldDayOfWeek dow
+        | days d < 10 = daysAgo future $ i2s (days d)
+        | weeks d < 2 = weekAgo future $ i2s (weeks d)
+        | weeks d < 5 = weeksAgo future $ i2s (weeks d)
+        | years d < 1 = onYear thisYear
+        | otherwise = onYear previousYears

@@ -1,24 +1,11 @@
-{-# LANGUAGE CPP #-}
-
 module Data.Time.Format.HumanSpec
-    ( main
-    , spec
+    ( spec
     ) where
-
-import Test.Hspec
-import Data.Time.Format.Human
 
 import Data.Maybe (fromJust)
 import Data.Time
-
-#if !MIN_VERSION_time(1,5,0)
-import System.Locale (defaultTimeLocale)
-parseTimeM _ = parseTime
-#endif
-
-
-main :: IO ()
-main = hspec spec
+import Data.Time.Format.Human
+import Test.Hspec
 
 spec :: Spec
 spec = describe "humanReadableTime'" $ do
